@@ -5,6 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Blog Post</title>
     <link rel="stylesheet" href="style.css">
+    <script type="module">
+        // Import Firebase functions
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBUNr3zNdW-UQkyzGfJmcgp_UIbgKM70gg",
+            authDomain: "techify-8de81.firebaseapp.com",
+            projectId: "techify-8de81",
+            storageBucket: "techify-8de81.appspot.com",
+            messagingSenderId: "460987131862",
+            appId: "1:460987131862:web:737c80f4c7cd14a215e677",
+            measurementId: "G-H86F3LB408"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Add a new blog post to Firestore
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('postForm');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const title = document.getElementById('title').value;
+                const content = document.getElementById('content').value;
+
+                try {
+                    await addDoc(collection(db, "posts"), {
+                        title: title,
+                        content: content
+                    });
+                    alert('Post submitted successfully!');
+                    form.reset();
+                } catch (error) {
+                    console.error('Error adding post:', error);
+                }
+            });
+        });
+    </script>
 </head>
 <body>
     <header>
@@ -22,26 +65,5 @@
     <footer>
         <p>&copy; 2024 My Blog. All rights reserved.</p>
     </footer>
-
-    <script>
-        const form = document.getElementById('postForm');
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const title = document.getElementById('title').value;
-            const content = document.getElementById('content').value;
-
-            const postData = { title, content };
-
-            // Send the post data to a specified URL or handle it as needed
-            // This example uses a placeholder; you'll need to implement the backend logic
-            console.log(postData);
-            alert('Post submitted successfully!'); // Replace this with actual submission logic
-
-            // Clear the form
-            form.reset();
-        });
-    </script>
 </body>
 </html>
