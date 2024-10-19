@@ -8,7 +8,7 @@
     <script type="module">
         // Import Firebase functions
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
         // Firebase configuration
         const firebaseConfig = {
@@ -34,11 +34,14 @@
 
                 const title = document.getElementById('title').value;
                 const content = document.getElementById('content').value;
+                const imageUrl = document.getElementById('imageUrl').value;
 
                 try {
                     await addDoc(collection(db, "posts"), {
                         title: title,
-                        content: content
+                        content: content,
+                        imageUrl: imageUrl,
+                        timestamp: serverTimestamp()
                     });
                     alert('Post submitted successfully!');
                     form.reset();
@@ -58,12 +61,13 @@
         <form id="postForm">
             <input type="text" id="title" placeholder="Title" required>
             <textarea id="content" placeholder="Content" required></textarea>
+            <input type="text" id="imageUrl" placeholder="Image URL" required>
             <button type="submit">Add Post</button>
         </form>
     </main>
 
     <footer>
-        <p>&copy; 2024 My Blog. All rights reserved.</p>
+        <p>&copy; 2024 My Professional Blog. All rights reserved.</p>
     </footer>
 </body>
 </html>
