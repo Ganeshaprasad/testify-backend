@@ -52,7 +52,7 @@
                         <h3>${post.title}</h3>
                         <div contenteditable="true" class="post-text" data-id="${doc.id}">${post.content}</div>
                         <p class="post-date">Posted on: ${new Date(post.timestamp?.seconds * 1000).toLocaleString()}</p>
-                        <button class="edit-button" data-id="${doc.id}">Edit</button>
+                        <button class="save-button" data-id="${doc.id}">Save</button>
                         <button class="delete-button" data-id="${doc.id}">Delete</button>
                     </div>`;
                 postsContainer.appendChild(postElement);
@@ -80,7 +80,7 @@
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const title = document.getElementById('title').value;
-                const content = document.getElementById('content').value;
+                const content = document.getElementById('content').innerHTML; // Use innerHTML for rich text
                 const imageUrl = document.getElementById('imageUrl').value;
 
                 try {
@@ -92,13 +92,13 @@
                 }
             });
 
-            // Event delegation for edit and delete buttons
+            // Event delegation for save and delete buttons
             document.getElementById('posts').addEventListener('click', (e) => {
                 const postId = e.target.getAttribute('data-id');
 
-                if (e.target.classList.contains('edit-button')) {
-                    const postText = e.target.previousElementSibling;
-                    updatePost(postId, postText.innerHTML);
+                if (e.target.classList.contains('save-button')) {
+                    const postText = e.target.parentElement.querySelector('.post-text');
+                    updatePost(postId, postText.innerHTML); // Save the updated content
                 }
 
                 if (e.target.classList.contains('delete-button')) {
@@ -147,7 +147,7 @@
             margin-bottom: 10px;
             min-height: 100px;
         }
-        .edit-button, .delete-button {
+        .edit-button, .delete-button, .save-button {
             margin-right: 10px;
             cursor: pointer;
         }
