@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Blog Post</title>
+    <title>Manage Blog Posts</title>
     <link rel="stylesheet" href="style.css">
     <script type="module">
         // Import Firebase functions
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
         // Firebase configuration
         const firebaseConfig = {
@@ -26,44 +26,151 @@
         const db = getFirestore(app);
 
         // Add a new blog post to Firestore
+        async function addPost(title, content, imageUrl) {
+            await addDoc(collection(db, "posts"), {
+                title: title,
+                content: content,
+                imageUrl: imageUrl,
+                timestamp: serverTimestamp()
+            });
+            fetchPosts(); // Refresh the posts list
+        }
+
+        // Fetch posts from Firestore and display them
+        async function fetchPosts() {
+            const postsContainer = document.getElementById('posts');
+            postsContainer.innerHTML = ''; // Clear any existing content
+            
+            const querySnapshot = await getDocs(collection(db, "posts"));
+            querySnapshot.forEach((doc) => {
+                const post = doc.data();
+                const postElement = document.createElement('div');
+                postElement.className = 'post';
+                postElement.innerHTML = `
+                    <img src="${post.imageUrl}" alt="${post.title}" class="post-image">
+                    <div class="post-content">
+                        <h3>${post.title}</h3>
+                        <div contenteditable="true" class="post-text" data-id="${doc.id}">${post.content}</div>
+                        <p class="post-date">Posted on: ${new Date(post.timestamp?.seconds * 1000).toLocaleString()}</p>
+                        <button class="edit-button" data-id="${doc.id}">Edit</button>
+                        <button class="delete-button" data-id="${doc.id}">Delete</button>
+                    </div>`;
+                postsContainer.appendChild(postElement);
+            });
+        }
+
+        // Delete a blog post from Firestore
+        async function deletePost(id) {
+            await deleteDoc(doc(db, "posts", id));
+            fetchPosts(); // Refresh the posts list
+        }
+
+        // Update a blog post in Firestore
+        async function updatePost(id, content) {
+            await updateDoc(doc(db, "posts", id), { content: content });
+            fetchPosts(); // Refresh the posts list
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('postForm');
 
+            // Fetch existing posts on page load
+            fetchPosts();
+
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-
                 const title = document.getElementById('title').value;
                 const content = document.getElementById('content').value;
                 const imageUrl = document.getElementById('imageUrl').value;
 
                 try {
-                    await addDoc(collection(db, "posts"), {
-                        title: title,
-                        content: content,
-                        imageUrl: imageUrl,
-                        timestamp: serverTimestamp()
-                    });
+                    await addPost(title, content, imageUrl);
                     alert('Post submitted successfully!');
                     form.reset();
                 } catch (error) {
                     console.error('Error adding post:', error);
                 }
             });
+
+            // Event delegation for edit and delete buttons
+            document.getElementById('posts').addEventListener('click', (e) => {
+                const postId = e.target.getAttribute('data-id');
+
+                if (e.target.classList.contains('edit-button')) {
+                    const postText = e.target.previousElementSibling;
+                    updatePost(postId, postText.innerHTML);
+                }
+
+                if (e.target.classList.contains('delete-button')) {
+                    deletePost(postId);
+                }
+            });
         });
     </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        .post {
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .post-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .post-content {
+            padding: 20px;
+        }
+        .post h3 {
+            margin-top: 0;
+        }
+        .post-date {
+            font-size: 0.9em;
+            color: #777;
+        }
+        .post-text {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            min-height: 100px;
+        }
+        .edit-button, .delete-button {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <h1>Add a New Blog Post</h1>
+        <h1>Manage Blog Posts</h1>
     </header>
 
     <main>
         <form id="postForm">
             <input type="text" id="title" placeholder="Title" required>
-            <textarea id="content" placeholder="Content" required></textarea>
+            <div>
+                <label for="content">Content:</label>
+                <div id="content" contenteditable="true" style="border: 1px solid #ccc; padding: 10px; min-height: 100px;"></div>
+            </div>
             <input type="text" id="imageUrl" placeholder="Image URL" required>
             <button type="submit">Add Post</button>
         </form>
+
+        <h2>All Blog Posts</h2>
+        <div id="posts"></div>
     </main>
 
     <footer>
